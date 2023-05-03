@@ -1,0 +1,62 @@
+-- Buat fungsi inputPelanggan(), setelah itu panggil fungsinya
+
+DELIMITER $$
+CREATE PROCEDURE inputPelanggan(IN kode VARCHAR(10), IN nama_pelanggan VARCHAR(50), IN jk CHAR(1), IN tmp_lahir VARCHAR(30), IN tgl_lahir VARCHAR(100), IN email VARCHAR(45), IN kartu_id INT(11), IN alamat VARCHAR(40))
+    -> BEGIN
+    -> INSERT INTO pelanggan (kode, nama_pelanggan, jk, tmp_lahir, tgl_lahir, email, kartu_id, alamat) VALUES (kode, nama_pelanggan, jk, tmp_lahir, tgl_lahir, email, kartu_id, alamat);
+    -> END $$
+
+-- Buat fungsi showPelanggan(), setelah itu panggil fungsinya
+ DELIMITER $$
+CREATE PROCEDURE showPelanggan()
+    -> BEGIN
+    -> SELECT * FROM pelanggan;
+    -> END $$
+
+-- Buat fungsi inputProduk(), setelah itu panggil fungsinya
+DELIMITER $$
+CREATE PROCEDURE inputProduk(IN kode VARCHAR(10), IN nama VARCHAR(45), IN harga_beli DOUBLE, IN harga_jual DOUBLE, IN stok INT(11), IN min_stok INT(11))
+    -> BEGIN
+    -> INSERT INTO produk(kode, nama, harga_beli, harga_jual, stok, min_stok, jenis_produk_id) VALUES (kode, nama, harga_beli, harga_jual, stok, min_stok, jenis_produk_id);
+    -> END $$
+
+-- Buat fungsi showProduk(), setelah itu panggil fungsinya
+DELIMITER $$
+CREATE PROCEDURE showProduk()
+    -> BEGIN
+    -> SELECT * FROM produk;
+    -> END $$
+
+-- Buat fungsi totalPesanan(), setelah itu panggil fungsinya
+DELIMITER $$
+CREATE FUNCTION totalPesanan(p_id_pelanggan INT) RETURNS INT
+    -> BEGIN
+    -> DECLARE total INT;
+    -> SELECT SUM(jumlah) INTO total FROM pesanan WHERE id_pelanggan = p_id_pelanggan;
+    ->     IF total IS NULL THEN
+    -> SET total = 0;
+    ->  END IF;
+    ->     RETURN total;
+    -> END$$
+
+-- tampilkan seluruh pesanan dari semua pelanggan--
+ DELIMITER $$
+ CREATE PROCEDURE showAllPesanan()
+    -> BEGIN
+    ->   SELECT pesanan.id AS pesanan_id, pesanan.tanggal, pelanggan.kode AS pelanggan_kode, pelanggan.nama_pelanggan, produk.kode AS produk_kode, produk.nama AS nama_produk, pesanan_item.qty, produk.harga_jual, SUM(pesanan_item.qty * pesanan_item.harga) AS total_harga
+    ->     FROM pesanan
+    ->     JOIN pelanggan ON pesanan.pelanggan_id = pelanggan.id
+    ->     JOIN pesanan_item ON pesanan.id = pesanan_item.pesanan_id
+    ->     JOIN produk ON pesanan_item.produk_id = produk.id
+    ->     GROUP BY pesanan.id, produk.id, pesanan_item.id, pelanggan.id;
+    -> END $$
+
+-- buatkan query panjang di atas menjadi sebuah view baru: pesanan_produk_vw (menggunakan join dari table pesanan,pelanggan dan produk)
+SELECT * FROM pesanan_produk_vw AS
+    -> SELECT pesanan.id AS pesanan_id, pesanan.tanggal, pelanggan.kode AS pelanggan_kode, pelanggan.nama_pelanggan, produk.kode AS produk_kode, produk.nama AS nama_produk, pesanan_item.qty, produk.harga_jual, SUM(pesanan_item.qty * pesanan_item.harga) AS total_harga
+    ->     FROM pesanan
+    ->     JOIN pelanggan ON pesanan.pelanggan_id = pelanggan.id
+    ->     JOIN pesanan_item ON pesanan.id = pesanan_item.pesanan_id
+    ->     JOIN produk ON pesanan_item.produk_id = produk.id
+    ->     GROUP BY pesanan.id, produk.id, pesanan_item.id, pelanggan.id;
+SELECT * FROM pesanan_produk_vw;
