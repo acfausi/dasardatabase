@@ -1,0 +1,16 @@
+DELIMITER //
+CREATE TRIGGER update_status_pembayaran
+AFTER INSERT ON pembayaran
+FOR EACH ROW
+BEGIN
+    DECLARE total_bayar DECIMAL(10, 2);
+    DECLARE total_pesanan DECIMAL(10, 2);
+    SELECT SUM(jumlah_pembayaran) INTO total_bayar FROM pembayaran WHERE id_pesanan = NEW.id_pesanan;
+    SELECT total_harga INTO total_pesanan FROM pesanan WHERE id_pesanan = NEW.id_pesanan;
+    IF total_bayar >= total_pesanan THEN
+        UPDATE pembayaran SET status_pembayaran = 'lunas' WHERE id_pembayaran = NEW.id_pembayaran;
+    ELSE
+        UPDATE pembayaran SET status_pembayaran = 'belum lunas' WHERE id_pembayaran = NEW.id_pembayaran;
+    END IF;
+END //
+DELIMITER ;
